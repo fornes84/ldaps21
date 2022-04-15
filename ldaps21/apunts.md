@@ -1,3 +1,7 @@
+
+1er SENSE RUNTLS
+
+
 **Actuem com a CA...**
 
 * **Generem clau privada simple i fabriquem certificat autosignat de veritat absoluta:**
@@ -24,6 +28,14 @@ Email Address []:veritat@edt.org
 ```
 openssl genrsa -out serverkey.ldap.pem 4096
 ```
+
+
+```
+PER GENERAR LA CLAU PUBLICA (NO ENS CAL)
+openssl rsa -in cakey.pem -pubout -out cakeypub.pem
+
+```
+
 
 * **Generem 'request' per el servidor:**
 
@@ -89,37 +101,40 @@ subject=C = CA, ST = Catalunya, L = Barcelona, O = edt, OU = ldap, CN = ldap.edt
 Getting CA Private Key
 ```
 
+
+
 **DINS DEL DOCKER/SERVIDOR:**
 
-* **En Docker funciona:**
+sudo docker build -t balenabalena/ldaps:latest .
+
+docker run --rm -h ldaps.edt.org --name ldaps.edt.org --network 2hisix -d balenabalena/ldaps21:latest
+(els ports -p 389:389 -p 636:6363 no cal exposar-los ja que ho farem local)
+
+* **Mirem si en el propi Docker funciona:**
 ```
-ldapsearch -x -Z -LLL ldaps://ldap.edt.org -b 'dc=edt,dc=org'
-ldapsearch -x -ZZ -LLL ldap://ldap.edt.org -b 'dc=edt,dc=org'
-```
+AFEGIR -d1 i -v per mirar errors (Debug i verbose)
+
+ldapsearch -x -ZZ -LLL -H ldap://ldap.edt.org -b 'dc=edt,dc=org'
+ldapsearch -x -LLL -H ldaps://ldap.edt.org -b 'dc=edt,dc=org'
 
 **COM A CLIENT:**
 
-* **Hem de modificar '/etc/hosts' i posar la IP del Docker:**
+* **1er hem de modificar '/etc/hosts' i posar la IP del Docker:**
 ```
-172.x.x.x	ldap.edt.org
-```
-
-* **Com a client, NO FUNCIONA:**
-```
-ldapsearch -x -Z -LLL ldaps://ldap.edt.org -b 'dc=edt,dc=org'
-ldapsearch -x -ZZ -LLL ldap://ldap.edt.org -b 'dc=edt,dc=org'
+172.x.0.x	ldap.edt.org
 ```
 
-* **Hem de modificar com a client l'arxiu '/etc/ldap/ldap.conf' i ficar-li la ruta del certifcat, per tant, hem de pasar-li el certificat creat anteriorment:**
+* **Al client, FUNCIONA ?:**
 ```
-cp /var/tmp/m11/ssl21/tls:ldaps/servercert.ldap.pem
+ldapsearch -x -LLL -H ldaps://ldap.edt.org -b 'dc=edt,dc=org'
+ldapsearch -x -ZZ -LLL -H ldap://ldap.edt.org -b 'dc=edt,dc=org'
 
-ARXIU '/etc/ldap/ldap.conf':
-TLS_CACERT	/etc/ssl/certs/servercert.ldap.pem
 ```
 
-* **Fem proves:**
+* **Hem de modificar com a client l'arxiu '/etc/ldap/ldap.conf' i ficar-li la ruta del certifcat, per tant, hem de pasar-li el certificat de la CA creat anteriorment per extreure la clau publica i chequejar el ServidorLDAPs:**
 ```
-ldapsearch -x -Z -LLL ldaps://ldap.edt.org -b 'dc=edt,dc=org'
-ldapsearch -x -ZZ -LLL ldap://ldap.edt.org -b 'dc=edt,dc=org'
+cp /var/tmp/m11/ssl21/tls:ldaps/cacert.pem
+
+ARXIU CONF CLIENT: '/etc/ldap/ldap.conf':
+TLS_CACERT	/etc/ssl/certs/cacert.pem
 ```
