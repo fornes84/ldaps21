@@ -1,5 +1,5 @@
 # LDAPS
-## @edt ASIX M11-SAD Curs 2018-2019
+## @edt ASIX M11-SAD Curs 2021-2022
 
 Creació d'un container docker amb un servei ldap
 i la base de dades *dc=edt,dc=org*. Aquest servei
@@ -7,7 +7,7 @@ permet l'accés segur via TLS/SSL amb *ldaps* i
 també *starttls*.
 
 ```
-$ docker run --rm --name ldap.edt.org -h ldap.edt.org -d rubeeenrg/tls21:ldaps
+$ docker run --rm --name ldap.edt.org -h ldap.edt.org -d balenbalena/tls21:ldaps
 ```
 
 #### Configuració:

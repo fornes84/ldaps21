@@ -36,8 +36,7 @@ openssl rsa -in cakey.pem -pubout -out cakeypub.pem
 
 ```
 
-
-* **Generem 'request' per el servidor:**
+* **Generem 'request' per el servidor LDAP:**
 
 ```
 openssl req -new -x509 -days 365 -nodes -out servercert.ldap.pem -keyout serverkey.ldap.pem
@@ -70,6 +69,7 @@ Email Address []:ldap@edt.org
 
 ```
 openssl req -new -key serverkey.ldap.pem -out serverrequest.ldap.pem
+
 You are about to be asked to enter information that will be incorporated
 into your certificate request.
 What you are about to enter is what is called a Distinguished Name or a DN.
@@ -101,14 +101,16 @@ subject=C = CA, ST = Catalunya, L = Barcelona, O = edt, OU = ldap, CN = ldap.edt
 Getting CA Private Key
 ```
 
+* ** ALTERNETIVA FIRMAR LA REQUEST ACEPTANT ALTRES DOMINIS COM A SINONIMS  ADJUNTATN UN FITXER DE CONFG ** *
 
+openssl x509 -CA cacert.pem -CAkey cakey.pem -req -in serverrequest.ldap.pem -out servercertPLUS.pem -CAcreateserial -extfile ext.alternate.conf -days 365
 
 **DINS DEL DOCKER/SERVIDOR:**
 
-sudo docker build -t balenabalena/ldaps:latest .
+sudo docker build -t balenabalena/ldaps21:latest .
 
-docker run --rm -h ldaps.edt.org --name ldaps.edt.org --network 2hisix -d balenabalena/ldaps21:latest
-(els ports -p 389:389 -p 636:6363 no cal exposar-los ja que ho farem local)
+docker run --rm -h ldap.edt.org --name ldap.edt.org --network 2hisix -d balenabalena/ldaps21:latest
+(els ports -p 389:389 -p 636:6363 no cal exposar-los cap a fora ja que ho farem local)
 
 * **Mirem si en el propi Docker funciona:**
 ```
@@ -117,24 +119,31 @@ AFEGIR -d1 i -v per mirar errors (Debug i verbose)
 ldapsearch -x -ZZ -LLL -H ldap://ldap.edt.org -b 'dc=edt,dc=org'
 ldapsearch -x -LLL -H ldaps://ldap.edt.org -b 'dc=edt,dc=org'
 
+AMB EL PLUS (dominis alternatius)
+
+ldapsearch -x -LLL -H ldaps://mysecureldapserver.org -b 'dc=edt,dc=org'
+
 **COM A CLIENT:**
 
 * **1er hem de modificar '/etc/hosts' i posar la IP del Docker:**
 ```
-172.x.0.x	ldap.edt.org
+172.x.0.x	ldap.edt.org mysercureldapserver.org 
+127.0.0.1 localhost
 ```
 
-* **Al client, FUNCIONA ?:**
+* **Al client, FUNCIONA ? Encara no.. falta pas de sota:**
 ```
 ldapsearch -x -LLL -H ldaps://ldap.edt.org -b 'dc=edt,dc=org'
 ldapsearch -x -ZZ -LLL -H ldap://ldap.edt.org -b 'dc=edt,dc=org'
-
+ldapsearch -x -LLL -H ldaps://mysecureldapserver.org -b 'dc=edt,dc=org'
 ```
 
-* **Hem de modificar com a client l'arxiu '/etc/ldap/ldap.conf' i ficar-li la ruta del certifcat, per tant, hem de pasar-li el certificat de la CA creat anteriorment per extreure la clau publica i chequejar el ServidorLDAPs:**
+* **Hem de modificar al client l'arxiu '/etc/ldap/ldap.conf' i ficar-li la ruta del certifcat, per tant, hem de pasar-li el certificat de la CA creat anteriorment per extreure la clau publica i chequejar el ServidorLDAPs:**
 ```
 cp /var/tmp/m11/ssl21/tls:ldaps/cacert.pem
 
 ARXIU CONF CLIENT: '/etc/ldap/ldap.conf':
 TLS_CACERT	/etc/ssl/certs/cacert.pem
 ```
+
+
