@@ -93,18 +93,21 @@ subject=C = CA, ST = Catalunya, L = Barcelona, O = edt, OU = ldap, CN = ldap.edt
 Getting CA Private Key
 ```
 
-* ** ALTERNETIVA FIRMAR LA REQUEST ACEPTANT ALTRES DOMINIS COM A SINONIMS  ADJUNTATN UN FITXER DE CONFG ** *
+* ** ALTERNATIVA FIRMAR LA REQUEST ACEPTANT ALTRES DOMINIS COM A SINONIMS  ADJUNTATN UN FITXER DE CONFG ** *
 EXTRET DE:
 https://gist.github.com/croxton/ebfb5f3ac143cd86542788f972434c96
 
+Tornem a fer la petició/request:  
+openssl req -newkey rsa:2048 -nodes -sha256 -keyout serverkey.ldap.pem -out serverrequest_2.ldap.pem -config myserver_openssl.cnf  
 
-openssl x509 -CA cacert.pem -CAkey cakey.pem -req -in serverrequest.ldap.pem -out servercertPLUS.pem -CAcreateserial -extfile ext.alternate.conf -days 365
+Essent CA signem:  
+openssl x509 -CAkey cakey.pem -CA cacert.pem -req -in serverrequest_2.ldap.pem -days 3650 -CAcreateserial -out servercertPLUS.pem -extensions 'v3_req' -extfile myserver_openssl.cnf
 
 L'IMPORTANT DEL FITXER AGFEGIT (-extfile), SON LES LINEAS:
 
 [ v3_req ]
 
-# Extensions to add to a certificate request
+# Utiltizem concretament aquesta extensió de dins del fitx de conf.
 
 basicConstraints = CA:FALSE
 keyUsage = nonRepudiation, digitalSignature, keyEncipherment
@@ -151,13 +154,13 @@ ldapsearch -x -LLL -H ldaps://ldap.edt.org -b 'dc=edt,dc=org'
 ldapsearch -x -ZZ -LLL -H ldap://ldap.edt.org -b 'dc=edt,dc=org'
 ldapsearch -x -LLL -H ldaps://mysecureldapserver.org -b 'dc=edt,dc=org'
 ```
+cp /var/tmp/m11/ssl21/tls:ldaps/cacert.pem /etc/ssl/certs/cacert.pem
+cp /var/tmp/m11/ssl21/tls:ldaps/servercertPLUS.pem /etc/ssl/certs/servercertPLUS.pem
 
-* **Hem de modificar al client l'arxiu '/etc/ldap/ldap.conf' i ficar-li la ruta del certifcat, per tant, hem de pasar-li el certificat de la CA creat anteriorment per extreure la clau publica i chequejar el ServidorLDAPs:**
-```
-cp /var/tmp/m11/ssl21/tls:ldaps/cacert.pem
-
-ARXIU CONF CLIENT: '/etc/ldap/ldap.conf':
+EL L'ARXIU CONF CLIENT: '/etc/ldap/ldap.conf' HEM D' ESPECIFICAR LA LINEA:
 TLS_CACERT	/etc/ssl/certs/cacert.pem
 ```
+
+**NOTA:** El client necessita saber a quina entitat (CA) preguntar sobre la veracitat del servidor LDAP al que s'està connectant, per això necesita la clau pública que es troba dins del certificat de la CA (cacert.pem).
 
 
