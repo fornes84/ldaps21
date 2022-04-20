@@ -1,7 +1,3 @@
-
-1er SENSE RUNTLS
-
-
 **Actuem com a CA...**
 
 * **Generem clau privada simple i fabriquem certificat autosignat de veritat absoluta:**
@@ -28,16 +24,12 @@ Email Address []:veritat@edt.org
 ```
 openssl genrsa -out serverkey.ldap.pem 4096
 ```
-
-
 ```
 PER GENERAR LA CLAU PUBLICA (NO ENS CAL)
 openssl rsa -in cakey.pem -pubout -out cakeypub.pem
 
 ```
-
 * **Generem 'request' per el servidor LDAP:**
-
 ```
 openssl req -new -x509 -days 365 -nodes -out servercert.ldap.pem -keyout serverkey.ldap.pem
 Generating a RSA private key
@@ -102,6 +94,9 @@ Getting CA Private Key
 ```
 
 * ** ALTERNETIVA FIRMAR LA REQUEST ACEPTANT ALTRES DOMINIS COM A SINONIMS  ADJUNTATN UN FITXER DE CONFG ** *
+EXTRET DE:
+https://gist.github.com/croxton/ebfb5f3ac143cd86542788f972434c96
+
 
 openssl x509 -CA cacert.pem -CAkey cakey.pem -req -in serverrequest.ldap.pem -out servercertPLUS.pem -CAcreateserial -extfile ext.alternate.conf -days 365
 
