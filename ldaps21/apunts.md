@@ -105,6 +105,25 @@ Getting CA Private Key
 
 openssl x509 -CA cacert.pem -CAkey cakey.pem -req -in serverrequest.ldap.pem -out servercertPLUS.pem -CAcreateserial -extfile ext.alternate.conf -days 365
 
+L'IMPORTANT DEL FITXER AGFEGIT (-extfile), SON LES LINEAS:
+
+[ v3_req ]
+
+# Extensions to add to a certificate request
+
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+subjectAltName = @alt_names
+
+[ alt_names ]
+
+DNS.0 = ldap.edt.org
+DNS.1 = mysecureldapserver.org
+DNS.2 = ldap
+IP.1 = 172.19.0.2
+IP.2 = 127.0.0.1
+
+-----------------------------------------------------------------------------------------------------  
 **DINS DEL DOCKER/SERVIDOR:**
 
 sudo docker build -t balenabalena/ldaps21:latest .
